@@ -5,7 +5,7 @@ function KnowListOperations( fs, portsMapper, serviceNamesMgr){
     
     var that = this;
     
-    var OUTPUT_FILE = "known_list.txt";
+    var OUTPUT_FILE = "outputs/known_list.txt";
     
     var _sentences = [];
     var _operations = [];

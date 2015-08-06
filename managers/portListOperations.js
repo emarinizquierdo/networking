@@ -5,7 +5,7 @@ function PortListOperations( fs, portsMapper, serviceNamesMgr){
     
     var that = this;
     
-    var OUTPUT_FILE = "port_list.txt";
+    var OUTPUT_FILE = "outputs/port_list.txt";
     
     var _sentences = [];
     var _operations = [];

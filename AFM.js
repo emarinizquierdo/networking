@@ -1,24 +1,15 @@
 
 /* Import javascript utils */
 var fs = require('fs'),
-    Netmask = require('netmask').Netmask,
-    portsMapper = require('.portsMapper');
+    Netmask = require('netmask').Netmask;
 
 /* Global Variables */
-var OUTPUT_KNOWN = "known_Service.txt",
+var OUTPUT_PORT_LIST = "port_list.txt",
+    OUTPUT_KNOWN = "known_Service.txt",
     OUTPUT_PORT_LIST_GROUP = "port_listGroup.txt",
     OUTPUT_ADDRESS_LIST = "address_list_output.txt",
     OUTPUT_GROUP_ADDRESS_LIST = "address_group_list_output.txt",
     OUTPUT_RULE_LIST = "rule_list_output.txt";
-
-
-var portListOperations = [],
-    portListGroupsOperations = [],
-    addressListOperations = [],
-    addressGroupsListOperations = [],
-    knownListOperations = [],
-    ruleListOperations = [],
-    policyOperations = [];
     
 var inputFile = process.argv[2],
     portList = [],
@@ -31,9 +22,87 @@ var inputFile = process.argv[2],
     _setGroupAddressSentences,
     _RuleSentences;
 
-/*Refactor*/
-var RAWSentencesArray;
-var portLO;
+var tcpUdpMapping = {
+    
+    "ICMP-ANY" : {
+        "icmp" : true
+    },
+    "IPSEC_ESP" :{
+        "50" : true
+    },
+    "Protocol_AH" : {
+        "51" : true
+    },
+    "Protocol_41" : {
+        "41" : true
+    },
+    "SSH" : {
+        "tcp" : true
+    },
+    "SMB" : {
+        "tcp" : true
+    },
+    "HTTPS" : {
+        "tcp" : true
+    },
+    "SNMP" : {
+        "tcp" : true,
+        "udp" : true
+    },
+    "SMTP" : {
+        "tcp" : true
+    },
+    "SUN-RPC-PORTMAPPER" : {
+        "tcp" : true,
+        "udp" : true
+    },
+    "RTSP" : {
+        "tcp" : true
+    },
+    "DNS" : {
+        "tcp" : true,
+        "upd" : false,
+    },
+    "DHCP-Relay" : {
+        "udp" : true
+    },
+    "LDAP" : {
+        "tcp" : true
+    },
+    "MS-RPC-EPM" : {
+        "tcp" : true,
+        "udp" : true
+    },
+    "NTP" : {
+        "tcp" : true,
+        "udp" : true
+    },
+    "TELNET" : {
+        "tcp" : true
+    },
+    "HTTP" : {
+        "tcp" : true
+    },
+    "PPTP" : {
+        "tcp" : true
+    },
+    "IMAP" : {
+        "tcp" : true
+    },
+    "POP3" : {
+        "tcp" : true
+    },
+    "TFTP" : {
+        "udp" : true
+    },
+    "SYSLOG" : {
+        "udp" : true
+    },
+    "VNC" : {
+        "tcp" : true
+    },
+}
+
 
 /* End Global Variables */
 
@@ -57,14 +126,10 @@ function init(){
         //Posibles errores
         if (err) throw err;
     
-        RAWSentencesArray = p_text.replace(/'/g, '').replace(/"/g, '').split('\n');
-
-
-        portLO = new Port_List_Operations();
-        portLO.extract(RAWSentencesArray);
-        portLO.save();
-        
-        
+        //1º Extraemos set service
+        //2ªSacamos los set groups
+        //3ª Quitamos de set service los que son =3 y quitamos lo que ya existe en set service y set group
+    
         _setServicesSentences = _extractSetServiceSentences(text);
         _setServicesGroupSentences = _extractSetServiceGroupSentences(text);
         _setAddressSentences = _extractSetAddressSentences(text);
@@ -227,7 +292,6 @@ function _deleteSetServiceX(p_sentences, p_callback) {
     p_callback(_portList, _knowList);
 
 }
-
 
 function _replaceAFMKnowList( p_sentence ){
 
@@ -574,73 +638,10 @@ function iterateOverSentences(p_list, p_modifier){
     var _exit = [];
     
     for(var i = 0; i < p_list.length; i++){
-        
         _exit.push(_replaceAFMRuleList(p_list[i]));
     }
     
     return _exit;
 }
-
-
-function Port_List_Operations(){
-    
-    var that = this;
-    
-    var OUTPUT_PORT_LIST = "port_list.txt";
-    
-    var _sentences = [];
-    var _operations = [];
-    
-    this.extract = function( rawArray ){
-        
-        for (var i = 0; i < rawArray.length; i++) {
-            if (rawArray[i].indexOf("set service") >= 0) {
-                _sentences.push(rawArray[i]);
-            }
-        }
-    }
-    
-    this.createOperations = function(){
-        
-        var _sentenceAsArray = p_sentences[i].split(" ");
-        
-        for (var i = 0; i < _sentences.length; i++) {
-            if(_sentenceAsArray.length > 3) && ((_sentenceAsArray[4] == "tcp") || _sentenceAsArray[4] == "udp"){
-                that.addOperation(_sentenceAsArray)
-            }  
-    };
-    
-    this.addOperation = function( serviceName, portName, source, destination ){
-        
-        var _tempOperation = [];
-        // set service "tcp-8080" protocol tcp src-port 1-65535 dst-port 8080-8080
-        if(!portsMapper.exist(serviceName)){
-            _tempOperation.push("tmsh create security firewall port-list");
-        }else{
-            tcpUdpMapping[p_sentence[2].replace(/'/g, '').replace(/"/g, '')][p_sentence[4]] = {"src-port" : p_sentence[6], "dst-port" : p_sentence[8]};
-            _tempOperation.push("tmsh modify security firewall port-list");
-        }
-
-        portsMapper.add(serviceName, portName, source, destination);
-        
-        _tempOperation.push(serviceName);
-        _tempOperation.push("{ports add {" + destination + "}}"); 
-        _exit = _exit.join(" ");
-
-        
-        _operations.push(_exit);
-        
-    };
-    
-    this.save = function(){
-        var _stringToSave = _operations.join('\n').toString().replace(/,/g, '');
-        fs.writeFile(OUTPUT_PORT_LIST, _stringToSave, function(err) {
-            if (err) throw err;
-        });
-    }
-    
-}
-
-
 
 init();

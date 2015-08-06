@@ -2,14 +2,20 @@
 /* Import javascript utils */
 var fs = require('fs'),
     Netmask = require('netmask').Netmask,
-    pm = require('./portsMapper'),
+    pm = require('./managers/portsMapper'),
     portsMapper = new pm.PortsMapper();
-    snm = require('./serviceNamesManager'),
+    snm = require('./managers/serviceNamesManager'),
     serviceNamesMgr = new snm.ServiceNamesManager(),
-    plo = require('./portListOperations'),
+    plo = require('./managers/portListOperations'),
     portListOperations = new plo.PortListOperations(fs, portsMapper, serviceNamesMgr),
-    klo = require('./knownListOperations'),
-    knownListOperations = new klo.KnowListOperations(fs, portsMapper, serviceNamesMgr);
+    klo = require('./managers/knownListOperations'),
+    knownListOperations = new klo.KnowListOperations(fs, portsMapper, serviceNamesMgr),
+    plgo = require('./managers/portListGroupOperations'),
+    portListGroupOperations = new plgo.PortListGroupOperations(fs, portsMapper, serviceNamesMgr),
+    alo = require('./managers/addressListOperations'),
+    addressListOperations = new alo.AddressListOperations(fs, portsMapper, serviceNamesMgr, Netmask),
+    algo = require('./managers/addressListGroupOperations'),
+    addressListGroupOperations = new algo.AddressListGroupOperations(fs, portsMapper, serviceNamesMgr);
 
 
 var inputFile = process.argv[2];
@@ -41,14 +47,31 @@ function init(){
     
         RAWSentencesArray = text.replace(/'/g, '').replace(/"/g, '').split('\n');
 
+        //Generate Port List Operations
         portListOperations.extract(RAWSentencesArray);
         portListOperations.createOperations();
         portListOperations.save();
         
 
+        //Generate Known List Operations
         knownListOperations.extract(RAWSentencesArray);
         knownListOperations.createOperations();
         knownListOperations.save();
+
+        //Generate Port List Group Operations
+        portListGroupOperations.extract(RAWSentencesArray);
+        portListGroupOperations.createOperations();
+        portListGroupOperations.save();
+
+        //Generate Address List Operations
+        addressListOperations.extract(RAWSentencesArray);
+        addressListOperations.createOperations();
+        addressListOperations.save();
+
+        //Generate Address List Group Operations
+        addressListGroupOperations.extract(RAWSentencesArray);
+        addressListGroupOperations.createOperations();
+        addressListGroupOperations.save();
     
     });
     
