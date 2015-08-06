@@ -97,6 +97,10 @@ var PortsMapper = function(knownPorts){
         return ( typeof _mapList[name] != "undefined" ) ? true : false;
         
     };
+
+    this.getPortMap = function( portName ){
+        return _mapList[portName];
+    }
     
 }
 

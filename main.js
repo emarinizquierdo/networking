@@ -15,7 +15,9 @@ var fs = require('fs'),
     alo = require('./managers/addressListOperations'),
     addressListOperations = new alo.AddressListOperations(fs, portsMapper, serviceNamesMgr, Netmask),
     algo = require('./managers/addressListGroupOperations'),
-    addressListGroupOperations = new algo.AddressListGroupOperations(fs, portsMapper, serviceNamesMgr);
+    addressListGroupOperations = new algo.AddressListGroupOperations(fs, portsMapper, serviceNamesMgr),
+    rlo = require('./managers/rulesListOperations'),
+    rulesListOperations = new rlo.RulesListOperations(fs, portsMapper, serviceNamesMgr);
 
 
 var inputFile = process.argv[2];
@@ -72,6 +74,11 @@ function init(){
         addressListGroupOperations.extract(RAWSentencesArray);
         addressListGroupOperations.createOperations();
         addressListGroupOperations.save();
+
+        //Generate Rules List Operations
+        rulesListOperations.extract(RAWSentencesArray);
+        rulesListOperations.createOperations();
+        //addressListGroupOperations.save();
     
     });
     
