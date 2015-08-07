@@ -1,107 +1,114 @@
 // portsMapper.js
 //
 var knownPorts = {
-    
-    "ICMP-ANY" : {
-        "icmp" : true
+
+    "ICMP-ANY": {
+        "icmp": { protocol : "icmp" }
     },
-    "IPSEC_ESP" :{
-        "50" : true
+    "IPSEC_ESP": {
+        "50": { protocol : "50" }
     },
-    "Protocol_AH" : {
-        "51" : true
+    "Protocol_AH": {
+        "51": { protocol : "51" }
     },
-    "Protocol_41" : {
-        "41" : true
+    "Protocol_41": {
+        "41": { protocol : "41" }
     },
-    "SSH" : {
-        "tcp" : true
+    "SSH": {
+        "tcp": { protocol : "tcp" }
     },
-    "SMB" : {
-        "tcp" : true
+    "SMB": {
+        "tcp": { protocol : "tcp" }
     },
-    "HTTPS" : {
-        "tcp" : true
+    "HTTPS": {
+        "tcp": { protocol : "tcp" }
     },
-    "SNMP" : {
-        "tcp" : true,
-        "udp" : true
+    "SNMP": {
+        "tcp": { protocol : "tcp" },
+        "udp": { protocol : "udp" }
     },
-    "SMTP" : {
-        "tcp" : true
+    "SMTP": {
+        "tcp": { protocol : "tcp" }
     },
-    "SUN-RPC-PORTMAPPER" : {
-        "tcp" : true,
-        "udp" : true
+    "SUN-RPC-PORTMAPPER": {
+        "tcp": { protocol : "tcp" },
+        "udp": { protocol : "udp" }
     },
-    "RTSP" : {
-        "tcp" : true
+    "RTSP": {
+        "tcp": { protocol : "tcp" }
     },
-    "DNS" : {
-        "tcp" : true,
-        "upd" : false,
+    "DNS": {
+        "tcp": { protocol : "tcp" },
+        "upd": { protocol : "udp" },
     },
-    "DHCP-Relay" : {
-        "udp" : true
+    "DHCP-Relay": {
+        "udp": { protocol : "udp" }
     },
-    "LDAP" : {
-        "tcp" : true
+    "LDAP": {
+        "tcp": { protocol : "tcp" }
     },
-    "MS-RPC-EPM" : {
-        "tcp" : true,
-        "udp" : true
+    "MS-RPC-EPM": {
+        "tcp": { protocol : "tcp" },
+        "udp": { protocol : "udp" }
     },
-    "NTP" : {
-        "tcp" : true,
-        "udp" : true
+    "NTP": {
+        "tcp": { protocol : "tcp" },
+        "udp": { protocol : "udp" }
     },
-    "TELNET" : {
-        "tcp" : true
+    "TELNET": {
+        "tcp": { protocol : "tcp" }
     },
-    "HTTP" : {
-        "tcp" : true
+    "HTTP": {
+        "tcp": { protocol : "tcp" }
     },
-    "PPTP" : {
-        "tcp" : true
+    "PPTP": {
+        "tcp": { protocol : "tcp" }
     },
-    "IMAP" : {
-        "tcp" : true
+    "IMAP": {
+        "tcp": { protocol : "tcp" }
     },
-    "POP3" : {
-        "tcp" : true
+    "POP3": {
+        "tcp": { protocol : "tcp" }
     },
-    "TFTP" : {
-        "udp" : true
+    "TFTP": {
+        "udp": { protocol : "udp" }
     },
-    "SYSLOG" : {
-        "udp" : true
+    "SYSLOG": {
+        "udp": { protocol : "udp" }
     },
-    "VNC" : {
-        "tcp" : true
+    "VNC": {
+        "tcp": { protocol : "tcp" }
     },
 }
 
-var PortsMapper = function(knownPorts){
-    
+var PortsMapper = function(knownPorts) {
+
     var that = this;
-    
+
     var _mapList = knownPorts || {};
-    
-    this.add = function( name, protocol, src, dst){
-        
-        
-    };
-    
-    this.exist = function(name){
-        
-        return ( typeof _mapList[name] != "undefined" ) ? true : false;
-        
+
+    this.add = function(name, protocol, src, dst) {
+
+        _mapList[name] = _mapList[name] || {};
+
+        _mapList[name][protocol] = _mapList[name][protocol] || {
+            protocol : protocol,
+            src: src,
+            dst: dst
+        }
+
     };
 
-    this.getPortMap = function( portName ){
-        return _mapList[portName];
+    this.exist = function(name) {
+
+        return (typeof _mapList[name] != "undefined") ? true : false;
+
+    };
+
+    this.getPortMap = function(name) {
+        return _mapList[name];
     }
-    
+
 }
 
 module.exports.PortsMapper = PortsMapper;

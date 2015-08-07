@@ -5,7 +5,7 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
 
     var that = this;
 
-    var OUTPUT_FILE = "outputs/address_list_group.txt";
+    var OUTPUT_FILE = "outputs/rules_list.txt";
 
     var _sentences = [];
     var _operations = [];
@@ -71,20 +71,27 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
         var p_sentence = rule[0].replace(/\s+/g, ' ').split(' ');
 
         var _netScreenRule = {
+            "idName" : p_sentence[3],
+            "permission" : p_sentence[11],
             "origin_zone": p_sentence[5],
             "destination_zone": p_sentence[7],
             "src-address": [p_sentence[8]],
             "dst-address": [p_sentence[9]],
-            "service": [p_sentence[10]]
+            "services": [p_sentence[10]]
         };
 
-        _fillNetScreenRuleProperties(p_sentence, "service", _netScreenRule);
+        _fillNetScreenRuleProperties(p_sentence, "services", _netScreenRule);
         _fillNetScreenRuleProperties(p_sentence, "src-address", _netScreenRule);
         _fillNetScreenRuleProperties(p_sentence, "dst-address", _netScreenRule);
 
-        _netScreenRule.service = _transformServices(_netScreenRule.service);
+        _netScreenRule.services = _transformServices(_netScreenRule.services);
+        
+        //console.log(_netScreenRule);
+        
+        var _rulesOperations = _composeRuleList(_netScreenRule);
 
-        console.log(_netScreenRule);
+        _operations.push(_rulesOperations);
+        
     };
 
     this.save = function() {
@@ -119,9 +126,7 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
                 //si en la variable global de puertos es tcp o udp se pone tcp, oud  icpm.
                 for (var key in portsMapper.getPortMap(_filteredKey)) {
                     if (portsMapper.getPortMap(_filteredKey).hasOwnProperty(key) && portsMapper.getPortMap(_filteredKey)[key]) {
-                        var _object = {};
-                        _object[key] = _filteredKey;
-                        _services.push(_object);
+                        _services.push(portsMapper.getPortMap(_filteredKey)[key]);
                     }
                 }
             }
@@ -144,10 +149,41 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
 
         _ruleList.push("}");
 
-
+        _ruleList.join(" ");
 
         return _ruleList;
+    }
 
+    function _addRules(p_nsr, p_ruleList) {
+
+        var _rule = [];
+
+        for (var i = 0; i < p_nsr.services.length; i++) {
+            _composeRule(p_ruleList, p_nsr.idName, p_nsr.permission, p_nsr["src-address"], p_nsr["dst-address"], p_nsr.services[i].protocol)
+        }
+
+    }
+
+    function _composeRule(ruleList, ruleName, permission, origin, destination, protocol){
+        var _tempSentences = [];
+
+        _tempSentences.push("{ rules add { \"" + ruleName + "\"");
+
+        _tempSentences.push("{ place_after last action }");
+        if (permission == "permit") {
+            _tempSentences.push("accept");
+        } else if (permission == "deny") {
+            _tempSentences.push("drop");
+        }
+         
+        _tempSentences.push(" ip-protocol "); //meter a continuación valor si udp o tcp de variable global de puertos
+        _tempSentences.push(" destination {address-lists add {" + destination + " port-lists add {" + protocol + " }} source { address-lists add { " + origin + "} }}");
+
+        //si dentro del bloque hay mas puertos o mas addresses hay que meter un tmsh modify
+
+        _tempSentences = _tempSentences.join(" ");
+
+        ruleList.push(_tempSentences);
     }
 
 }

@@ -78,7 +78,7 @@ function init(){
         //Generate Rules List Operations
         rulesListOperations.extract(RAWSentencesArray);
         rulesListOperations.createOperations();
-        //addressListGroupOperations.save();
+        rulesListOperations.save();
     
     });
     
