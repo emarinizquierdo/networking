@@ -50,9 +50,8 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
 
     this.createOperations = function() {
 
-        var _sentenceAsArray;
-
         for (var i = 0; i < _sentences.length; i++) {
+            console.log(_sentences[i]);
             /*Each Sentence can be like one of this:
             set policy id 2381 from "WIFI-DISTRIBUCION" to "Administracion"  "n-re-portal" "s-si-DNS_admon" "DNS" permit 
             set policy id 2381 application "DNS"
@@ -77,14 +76,14 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
             "destination_zone": p_sentence[7],
             "src-address": [p_sentence[8]],
             "dst-address": [p_sentence[9]],
-            "services": [p_sentence[10]]
+            "service": [p_sentence[10]]
         };
 
-        _fillNetScreenRuleProperties(p_sentence, "services", _netScreenRule);
+        _fillNetScreenRuleProperties(p_sentence, "service", _netScreenRule);
         _fillNetScreenRuleProperties(p_sentence, "src-address", _netScreenRule);
         _fillNetScreenRuleProperties(p_sentence, "dst-address", _netScreenRule);
 
-        _netScreenRule.services = _transformServices(_netScreenRule.services);
+        _netScreenRule.service = _transformServices(_netScreenRule.service);
         
         //console.log(_netScreenRule);
         
@@ -122,7 +121,7 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
 
         for (var i = 0; i < p_services.length; i++) {
             _filteredKey = p_services[i];
-            if (portsMapper.getPortMap(_filteredKey)) {
+            if (portsMapper.exist(_filteredKey)) {
                 //si en la variable global de puertos es tcp o udp se pone tcp, oud  icpm.
                 for (var key in portsMapper.getPortMap(_filteredKey)) {
                     if (portsMapper.getPortMap(_filteredKey).hasOwnProperty(key) && portsMapper.getPortMap(_filteredKey)[key]) {
@@ -158,8 +157,8 @@ function RulesListOperations(fs, portsMapper, serviceNamesMgr) {
 
         var _rule = [];
 
-        for (var i = 0; i < p_nsr.services.length; i++) {
-            _composeRule(p_ruleList, p_nsr.idName, p_nsr.permission, p_nsr["src-address"], p_nsr["dst-address"], p_nsr.services[i].protocol)
+        for (var i = 0; i < p_nsr.service.length; i++) {
+            _composeRule(p_ruleList, p_nsr.idName, p_nsr.permission, p_nsr["src-address"], p_nsr["dst-address"], p_nsr.service[i].protocol)
         }
 
     }

@@ -101,7 +101,7 @@ var PortsMapper = function(knownPorts) {
 
     this.exist = function(name) {
 
-        return (typeof _mapList[name] != "undefined") ? true : false;
+        return (typeof _mapList[name] != "undefined");
 
     };
 
