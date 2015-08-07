@@ -1,7 +1,7 @@
 // portListGroupOperations.js
 //
 
-function PortListGroupOperations(fs, portsMapper, serviceNamesMgr) {
+function PortListGroupOperations(fs, knownListOperations, serviceNamesMgr) {
 
     var that = this;
 
@@ -9,6 +9,8 @@ function PortListGroupOperations(fs, portsMapper, serviceNamesMgr) {
 
     var _sentences = [];
     var _operations = [];
+
+    var _serviceGroupNames = {};
 
     this.extract = function(rawArray) {
 
@@ -39,21 +41,27 @@ function PortListGroupOperations(fs, portsMapper, serviceNamesMgr) {
 
     };
 
-    this.addOperation = function(serviceName, portName) {
+    this.addOperation = function(serviceGroupName, serviceName) {
 
         var _tempOperation = [];
         var _operation;
 
-        if (!serviceNamesMgr.exist(serviceName)) {
-            serviceNamesMgr.add(serviceName);
+        
+        if(!_serviceGroupNames[serviceGroupName]){
+            _serviceGroupNames[serviceGroupName] = true;
             _operation = "create";
         }else{
             _operation = "modify";
         }
 
+        if (!serviceNamesMgr.exist(serviceName)) {
+            serviceNamesMgr.add(serviceName);
+            knownListOperations.addOperation(serviceName);
+        }
+
         _tempOperation.push("tmsh " + _operation + " security firewall port-list");
-        _tempOperation.push("\"" + serviceName + "\"");
-        _tempOperation.push("{ port-lists add { " + portName + " { } }}");        
+        _tempOperation.push("\"" + serviceGroupName + "\"");
+        _tempOperation.push("{ port-lists add { " + serviceName + " { } }}");        
         _tempOperation = _tempOperation.join(" ");
 
         _operations.push(_tempOperation);

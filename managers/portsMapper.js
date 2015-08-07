@@ -93,8 +93,8 @@ var PortsMapper = function(knownPorts) {
 
         _mapList[name][protocol] = _mapList[name][protocol] || {
             protocol : protocol,
-            src: src,
-            dst: dst
+            src: (src == "0-65535") ? false : true,
+            dst: (dst == "0-65535") ? false : true
         }
 
     };
@@ -108,6 +108,7 @@ var PortsMapper = function(knownPorts) {
     this.getPortMap = function(name) {
         return _mapList[name];
     }
+
 
 }
 

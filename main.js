@@ -11,13 +11,15 @@ var fs = require('fs'),
     klo = require('./managers/knownListOperations'),
     knownListOperations = new klo.KnowListOperations(fs, portsMapper, serviceNamesMgr),
     plgo = require('./managers/portListGroupOperations'),
-    portListGroupOperations = new plgo.PortListGroupOperations(fs, portsMapper, serviceNamesMgr),
+    portListGroupOperations = new plgo.PortListGroupOperations(fs, knownListOperations, serviceNamesMgr),
     alo = require('./managers/addressListOperations'),
     addressListOperations = new alo.AddressListOperations(fs, portsMapper, serviceNamesMgr, Netmask),
     algo = require('./managers/addressListGroupOperations'),
     addressListGroupOperations = new algo.AddressListGroupOperations(fs, portsMapper, serviceNamesMgr),
+    rlm = require('./managers/ruleListManager'),
+    rulesListManager = new rlm.RuleListManager(portsMapper),
     rlo = require('./managers/rulesListOperations'),
-    rulesListOperations = new rlo.RulesListOperations(fs, portsMapper, serviceNamesMgr);
+    rulesListOperations = new rlo.RulesListOperations(fs, portsMapper, serviceNamesMgr, rulesListManager);
 
 
 var inputFile = process.argv[2];
@@ -58,12 +60,14 @@ function init(){
         //Generate Known List Operations
         knownListOperations.extract(RAWSentencesArray);
         knownListOperations.createOperations();
-        knownListOperations.save();
 
         //Generate Port List Group Operations
         portListGroupOperations.extract(RAWSentencesArray);
         portListGroupOperations.createOperations();
         portListGroupOperations.save();
+
+        //Wait to check if portListGroupOperations generate new know-list entries
+        knownListOperations.save();
 
         //Generate Address List Operations
         addressListOperations.extract(RAWSentencesArray);
