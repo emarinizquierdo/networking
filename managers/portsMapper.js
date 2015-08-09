@@ -78,10 +78,10 @@ var knownPorts = {
     },
     "VNC": {
         "tcp": { protocol : "tcp" }
-    },
+    }
 }
 
-var PortsMapper = function(knownPorts) {
+var PortsMapper = function() {
 
     var that = this;
 
@@ -92,9 +92,10 @@ var PortsMapper = function(knownPorts) {
         _mapList[name] = _mapList[name] || {};
 
         _mapList[name][protocol] = _mapList[name][protocol] || {
+            name : name,
             protocol : protocol,
-            src: (src == "0-65535") ? false : true,
-            dst: (dst == "0-65535") ? false : true
+            src: (src == "0-65535") ? false : src,
+            dst: (dst == "0-65535") ? false : dst
         }
 
     };
@@ -107,6 +108,25 @@ var PortsMapper = function(knownPorts) {
 
     this.getPortMap = function(name) {
         return _mapList[name];
+    }
+
+    this.getProtocols = function( serviceList ){
+
+        var _auxProtocolList = [];
+
+        for(var i = 0; i < serviceList.length; i++){
+            if(_mapList[serviceList[i]]){
+                for(var _protocol in _mapList[serviceList[i]]){
+                    if(_mapList[serviceList[i]].hasOwnProperty(_protocol)){
+                        _mapList[serviceList[i]][_protocol].name = serviceList[i];
+                        _auxProtocolList.push(_mapList[serviceList[i]][_protocol]);
+                    }                    
+                }
+            }
+        }
+
+        return _auxProtocolList;
+
     }
 
 

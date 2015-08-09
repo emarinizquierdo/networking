@@ -19,7 +19,7 @@ var RuleListManager = function(portsMapper) {
                 "permission": permissions
             };
 
-        } else {
+        } else if(!_ruleList[name][id]){
 
             _ruleList[name][id] = {
                 "src-address": [srcAddress],
@@ -27,6 +27,14 @@ var RuleListManager = function(portsMapper) {
                 "service": [service],
                 "permission": permissions
             };
+
+        }else{
+
+            _ruleList[name][id]["src-address"] = (srcAddress) ? _ruleList[name][id]["src-address"].push(srcAddress) : _ruleList[name][id]["src-address"];
+            _ruleList[name][id]["dst-address"] = (dstAddress) ? _ruleList[name][id]["dst-address"].push(dstAddress) : _ruleList[name][id]["dst-address"];
+            _ruleList[name][id].service = (service) ? _ruleList[name][id].service.push(service) : _ruleList[name][id].service;
+            _ruleList[name][id].permission = (permissions) ? _ruleList[name][id].permissions : _ruleList[name][id].permissions;
+
         }
 
     };
@@ -66,48 +74,71 @@ var RuleListManager = function(portsMapper) {
         var _tempRuleList = [];
         var _formattedRuleId;
         var _action;
+        var _ruleOperation;
 
         for (var ruleListName in _ruleList) {
             if (_ruleList.hasOwnProperty(ruleListName)) {
 
-                _tempRuleList.push("tmsh create security firewall rule-list \"" + ruleListName + "\" { rules add \n");
-
                 for (var ruleId in _ruleList[ruleListName]) {
                     if (_ruleList[ruleListName].hasOwnProperty(ruleId)) {
 
-                        for (var i = 0; i < _ruleList[ruleListName][ruleId].service.length; i++) {
+                        var _tempProtocolCheck ={};
 
-                            _formattedRuleId = (ruleId.length < 4) ? "R_0" + ruleId : "R_" + ruleId;
+                        _ruleList[ruleListName][ruleId].service = portsMapper.getProtocols(_ruleList[ruleListName][ruleId].service);
+
+                        for (var i = 0; i < _ruleList[ruleListName][ruleId].service.length; i++) {
+                            
+                            var _tempKey = _ruleList[ruleListName][ruleId].service[i].protocol + _ruleList[ruleListName][ruleId].service[i].src + _ruleList[ruleListName][ruleId].service[i].dst;
+                            
+                            if(!_tempProtocolCheck[_tempKey]){
+                                _tempProtocolCheck[_tempKey] = true;
+                                _tempRuleList.push("tmsh create security firewall rule-list \"" + ruleListName + "\" { rules add \n");
+                            }else{
+                                _tempRuleList.push("tmsh modify security firewall rule-list \"" + ruleListName + "\" { rules add \n");
+                            }
+
+                            _formattedRuleId = (ruleId.length < 4) ? "R_0" + ruleId + "_" + _ruleList[ruleListName][ruleId].service[i].protocol : "R_" + ruleId + "_" + _ruleList[ruleListName][ruleId].service[i].protocol;
                             _action = (_ruleList[ruleListName][ruleId].permission == "permit") ? "accept" : "drop";
 
                             _tempRuleList.push("{ \"" + _formattedRuleId + "\" { place_after last action " + _action + " ip-protocol ");
 
-                            _tempRuleList.push(_ruleList[ruleListName][ruleId].service[i]); //translate from knowListMngr
+                            _tempRuleList.push( _ruleList[ruleListName][ruleId].service[i].protocol + " "); //translate from knowListMngr
 
                             _tempRuleList.push(" destination { address-lists add { ");
 
+                            console.log(_ruleList[ruleListName]);
                             for(var j= 0; j < _ruleList[ruleListName][ruleId]["dst-address"].length; j++) {
                                 _tempRuleList.push(_ruleList[ruleListName][ruleId]["dst-address"][i]);
                             }
 
-                            _tempRuleList.push(" } port-lists add { " + _ruleList[ruleListName][ruleId].service[i] + " }}");
+                            _tempRuleList.push(" } ");
 
+                            if(_ruleList[ruleListName][ruleId].service[i].dst){
+
+                                _tempRuleList.push("port-lists add { " + _ruleList[ruleListName][ruleId].service[i].name + " }} ");
+
+                            }
+                            
                             _tempRuleList.push("source { address-list add { ");
 
-                            for(var j= 0; j < _ruleList[ruleListName][ruleId]["dst-address"].length; j++) {
-                                _tempRuleList.push(_ruleList[ruleListName][ruleId]["dst-address"][i]);
+                            for(var j= 0; j < _ruleList[ruleListName][ruleId]["src-address"].length; j++) {
+                                _tempRuleList.push(_ruleList[ruleListName][ruleId]["src-address"][i]);
                             }
 
-                            _tempRuleList.push("} port-lists add {  }}")
+                            _tempRuleList.push(" } ");
 
-                            _tempRuleList.push("\n");
+                            if(_ruleList[ruleListName][ruleId].service[i].src){
+                                _tempRuleList.push("port-lists add { " + _ruleList[ruleListName][ruleId].service[i].name + " }");
+                            }
+
+                            _tempRuleList.push("} }\n");
 
                         }
 
                     }
                 }
 
-                _tempRuleList.push("}\n");
+                _tempRuleList.push("\n");
 
                 _tempRuleList.join(" ");
 
