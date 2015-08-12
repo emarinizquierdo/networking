@@ -15,7 +15,8 @@ var knownPorts = {
         "41": { protocol : "41" }
     },
     "SSH": {
-        "tcp": { protocol : "tcp" }
+        "tcp": { protocol : "tcp",
+                    dst: true}
     },
     "SMB": {
         "tcp": { protocol : "tcp" }
@@ -94,8 +95,8 @@ var PortsMapper = function() {
         _mapList[name][protocol] = _mapList[name][protocol] || {
             name : name,
             protocol : protocol,
-            src: (src == "0-65535") ? false : src,
-            dst: (dst == "0-65535") ? false : dst
+            src: (src == "0-65535" || src == "1-65535") ? false : src,
+            dst: (dst == "0-65535" || dst == "1-65535") ? false : dst
         }
 
     };

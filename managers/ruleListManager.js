@@ -13,18 +13,18 @@ var RuleListManager = function(portsMapper) {
         if (!that.exist(name)) {
             _ruleList[name] = {};
             _ruleList[name][id] = {
-                "src-address": [srcAddress],
-                "dst-address": [dstAddress],
-                "service": [service],
+                "src-address": (srcAddress) ? [srcAddress] : [],
+                "dst-address": (dstAddress) ? [dstAddress] : [],
+                "service": (service) ? [service] : [],
                 "permission": permissions
             };
 
         } else if(!_ruleList[name][id]){
 
             _ruleList[name][id] = {
-                "src-address": [srcAddress],
-                "dst-address": [dstAddress],
-                "service": [service],
+                "src-address": (srcAddress) ? [srcAddress] : [],
+                "dst-address": (dstAddress) ? [dstAddress] : [],
+                "service": (service) ? [service] : [],
                 "permission": permissions
             };
 
@@ -88,7 +88,7 @@ var RuleListManager = function(portsMapper) {
 
                         for (var i = 0; i < _ruleList[ruleListName][ruleId].service.length; i++) {
 
-                            var _tempKey = _ruleList[ruleListName][ruleId].service[i].protocol + _ruleList[ruleListName][ruleId].service[i].src + _ruleList[ruleListName][ruleId].service[i].dst;
+                            var _tempKey = _ruleList[ruleListName][ruleId].service[i].protocol;
                             
                             if(!_tempProtocolCheck[_tempKey]){
                                 _tempProtocolCheck[_tempKey] = true;
